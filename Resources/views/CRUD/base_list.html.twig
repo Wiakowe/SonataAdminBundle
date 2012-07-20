@@ -73,7 +73,7 @@ file that was distributed with this source code.
                     <tr>
                         <th colspan="{{ admin.list.elements|length - 1 }}">
                             {{ admin.datagrid.pager.page }} / {{ admin.datagrid.pager.lastpage }}
-                            {% if admin.isGranted("EXPORT") %}
+                            {% if admin.isGranted("EXPORT") and admin.getExportFormats()|length %}
                                 -
                                 {{ "label_export_download"|trans({}, "SonataAdminBundle") }}
                                 {% for format in admin.getExportFormats() %}
@@ -89,9 +89,9 @@ file that was distributed with this source code.
 
                     {% if admin.datagrid.pager.haveToPaginate() %}
                         <tr>
-                            <td colspan="{{ admin.list.elements|length }}" class="pager">
+                            <td colspan="{{ admin.list.elements|length }}">
 
-                                <div class="pagination">
+                                <div class="pagination pagination-centered">
                                     <ul>
 
                                         {% if admin.datagrid.pager.page != 1  %}
@@ -151,12 +151,12 @@ file that was distributed with this source code.
                                 {% endfor %}
                             </select>
 
-                            <label>
+                            <label class="checkbox">
                                 <input type="checkbox" name="all_elements"/>
                                 {% trans from 'SonataAdminBundle' %}all_elements{% endtrans %}
                             </label>
 
-                            <input type="submit" class="btn primary" value="{% trans from 'SonataAdminBundle' %}btn_batch{% endtrans %}" />
+                            <input type="submit" class="btn btn-primary" value="{% trans from 'SonataAdminBundle' %}btn_batch{% endtrans %}" />
                         {% endblock %}
                     </div>
                 {% endblock %}
