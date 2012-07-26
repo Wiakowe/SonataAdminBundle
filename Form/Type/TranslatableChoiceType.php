@@ -85,6 +85,14 @@ class TranslatableChoiceType extends ChoiceType
     /**
      * {@inheritDoc}
      */
+    public function getParent()
+    {
+        return 'choice';
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function getName()
     {
         return 'sonata_type_translatable_choice';
