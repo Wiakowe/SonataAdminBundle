@@ -104,7 +104,7 @@ interface AdminInterface
      * @param array  $parameters
      * @param bool   $absolute
      *
-     * @return void
+     * @return string
      */
     function generateUrl($name, array $parameters = array(), $absolute = false);
 
@@ -240,6 +240,11 @@ interface AdminInterface
      * @return boolean
      */
     function isGranted($name, $object = null);
+
+    /**
+     * @param mixed $entity
+     */
+    function getUrlsafeIdentifier($entity);
 
     /**
      * @param mixed $entity
@@ -540,7 +545,7 @@ interface AdminInterface
      * @return void
      */
     function setParent(AdminInterface $admin);
-    
+
     /**
      * @param string $name
      *

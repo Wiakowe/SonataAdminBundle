@@ -142,6 +142,8 @@ class CRUDController extends Controller
     /**
      * return the Response object associated to the list action
      *
+     * @throws \Symfony\Component\Security\Core\Exception\AccessDeniedException
+     *
      * @return Response
      */
     public function listAction()
@@ -156,7 +158,7 @@ class CRUDController extends Controller
         // set the theme for the current Admin Form
         $this->get('twig')->getExtension('form')->renderer->setTheme($formView, $this->admin->getFilterTheme());
 
-        return $this->render($this->admin->getListTemplate(), array(
+        return $this->render($this->admin->getTemplate('list'), array(
             'action'   => 'list',
             'form'     => $formView,
             'datagrid' => $datagrid
@@ -220,7 +222,7 @@ class CRUDController extends Controller
             return new RedirectResponse($this->admin->generateUrl('list'));
         }
 
-        return $this->render('SonataAdminBundle:CRUD:delete.html.twig', array(
+        return $this->render($this->admin->getTemplate('delete'), array(
             'object' => $object,
             'action' => 'delete'
         ));
@@ -229,9 +231,11 @@ class CRUDController extends Controller
     /**
      * return the Response object associated to the edit action
      *
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
      *
      * @param mixed $id
+     *
+     * @throws \Symfony\Component\Security\Core\Exception\AccessDeniedException
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
      *
      * @return Response
      */
@@ -239,7 +243,7 @@ class CRUDController extends Controller
     {
         // the key used to lookup the template
         $templateKey = 'edit';
-        
+
         $id = $this->get('request')->get($this->admin->getIdParameter());
 
         $object = $this->admin->getObject($id);
@@ -254,14 +258,15 @@ class CRUDController extends Controller
 
         $this->admin->setSubject($object);
 
+        /** @var $form \Symfony\Component\Form\Form */
         $form = $this->admin->getForm();
         $form->setData($object);
 
         if ($this->get('request')->getMethod() == 'POST') {
             $form->bindRequest($this->get('request'));
-            
-            $isFormValid = $form->isValid(); 
-            
+
+            $isFormValid = $form->isValid();
+
              // persist if the form was valid and if in preview mode the preview was approved
             if ($isFormValid && (!$this->isInPreviewMode() || $this->isPreviewApproved())) {
                 $this->admin->update($object);
@@ -277,7 +282,7 @@ class CRUDController extends Controller
                 // redirect to edit mode
                 return $this->redirectTo($object);
             }
-            
+
             // show an error message if the form failed validation
             if (!$isFormValid) {
                 $this->get('session')->setFlash('sonata_flash_error', 'flash_edit_error');
@@ -421,13 +426,14 @@ class CRUDController extends Controller
     /**
      * return the Response object associated to the create action
      *
+     * @throws \Symfony\Component\Security\Core\Exception\AccessDeniedException
      * @return Response
      */
     public function createAction()
     {
         // the key used to lookup the template
         $templateKey = 'edit';
-        
+
         if (false === $this->admin->isGranted('CREATE')) {
             throw new AccessDeniedException();
         }
@@ -436,14 +442,15 @@ class CRUDController extends Controller
 
         $this->admin->setSubject($object);
 
+        /** @var $form \Symfony\Component\Form\Form */
         $form = $this->admin->getForm();
         $form->setData($object);
 
         if ($this->get('request')->getMethod() == 'POST') {
             $form->bindRequest($this->get('request'));
-            
-            $isFormValid = $form->isValid(); 
-            
+
+            $isFormValid = $form->isValid();
+
             // persist if the form was valid and if in preview mode the preview was approved
             if ($isFormValid && (!$this->isInPreviewMode() || $this->isPreviewApproved())) {
                 $this->admin->create($object);
@@ -459,7 +466,7 @@ class CRUDController extends Controller
                 // redirect to edit mode
                 return $this->redirectTo($object);
             }
-            
+
             // show an error message if the form failed validation
             if (!$isFormValid) {
                 $this->get('session')->setFlash('sonata_flash_error', 'flash_create_error');
@@ -480,10 +487,10 @@ class CRUDController extends Controller
             'object' => $object,
         ));
     }
-    
+
     /**
      * Returns true if the preview is requested to be shown
-     * 
+     *
      * @return boolean
      */
     protected function isPreviewRequested()
@@ -493,20 +500,20 @@ class CRUDController extends Controller
 
     /**
      * Returns true if the preview has been approved
-     * 
+     *
      * @return boolean
      */
     protected function isPreviewApproved()
     {
         return ($this->get('request')->get('btn_preview_approve') !== null);
     }
-    
+
     /**
      * Returns true if the request is in the preview workflow
-     * 
+     *
      * That means either a preview is requested or the preview has already been shown
      * and it got approved/declined.
-     * 
+     *
      * @return boolean
      */
     protected function isInPreviewMode()
@@ -519,7 +526,7 @@ class CRUDController extends Controller
 
     /**
      * Returns true if the preview has been declined
-     * 
+     *
      * @return boolean
      */
     protected function isPreviewDeclined()
@@ -529,6 +536,11 @@ class CRUDController extends Controller
 
     /**
      * return the Response object associated to the view action
+     *
+     * @param null $id
+     *
+     * @throws \Symfony\Component\Security\Core\Exception\AccessDeniedException
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
      *
      * @return Response
      */
@@ -548,7 +560,7 @@ class CRUDController extends Controller
 
         $this->admin->setSubject($object);
 
-        return $this->render($this->admin->getShowTemplate(), array(
+        return $this->render($this->admin->getTemplate('show'), array(
             'action'   => 'show',
             'object'   => $object,
             'elements' => $this->admin->getShow(),
@@ -597,6 +609,9 @@ class CRUDController extends Controller
      * @param null    $id
      * @param string  $revision
      *
+     * @throws \Symfony\Component\Security\Core\Exception\AccessDeniedException
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     *
      * @return Response
      */
     public function historyViewRevisionAction($id = null, $revision = null)
@@ -630,7 +645,7 @@ class CRUDController extends Controller
 
         $this->admin->setSubject($object);
 
-        return $this->render($this->admin->getShowTemplate(), array(
+        return $this->render($this->admin->getTemplate('show'), array(
             'action'   => 'show',
             'object'   => $object,
             'elements' => $this->admin->getShow(),
@@ -639,6 +654,9 @@ class CRUDController extends Controller
 
     /**
      * @param Request $request
+     *
+     * @throws \RuntimeException
+     * @throws \Symfony\Component\Security\Core\Exception\AccessDeniedException
      *
      * @return Response
      */

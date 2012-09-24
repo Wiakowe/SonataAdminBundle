@@ -12,7 +12,7 @@ Sonata dependencies that need to be installed and configured beforehand :
     - `KnpMenuBundle <https://github.com/KnpLabs/KnpMenuBundle/blob/master/Resources/doc/index.md#installation>`_ (Version 1.1.*)
     - `Exporter <https://github.com/sonata-project/exporter>`_
 
-You will need to install those in their 2.0 branches (or master if they don't
+You will need to install those in their 2.1 branches (or master if they don't
 have a similar branch). Follow also their configuration step ; you will find
 everything you need in their installation chapter.
 
@@ -35,10 +35,12 @@ Installation
 ------------
 
 Download SonataAdminBundle and its dependencies to the ``vendor`` directory. You
-can use Composer for the automated procces.
+can use Composer for the automated process::
 
-  php composer.phar require sonata-project/admin-bundle
-  php composer.phar install
+    php composer.phar require sonata-project/admin-bundle --no-update
+    php composer.phar require sonata-project/doctrine-orm-admin-bundle --no-update  # optional
+    php composer.phar require sonata-project/intl-bundle --no-update                # optional
+    php composer.phar update
 
 Next, be sure to enable this bundles in your AppKernel.php file:
 

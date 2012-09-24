@@ -13,6 +13,7 @@ namespace Sonata\AdminBundle\Admin;
 
 use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\Form\Util\PropertyPath;
 use Symfony\Component\Validator\ValidatorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Translation\TranslatorInterface;
@@ -26,6 +27,7 @@ use Sonata\AdminBundle\Show\ShowMapper;
 
 use Sonata\AdminBundle\Admin\Pool;
 use Sonata\AdminBundle\Validator\ErrorElement;
+use Sonata\AdminBundle\Validator\Constraints\InlineConstraint;
 
 use Sonata\AdminBundle\Translator\LabelTranslatorStrategyInterface;
 use Sonata\AdminBundle\Builder\FormContractorInterface;
@@ -388,13 +390,13 @@ abstract class Admin implements AdminInterface, DomainObjectInterface
     protected $extensions = array();
 
     protected $labelTranslatorStrategy;
-    
+
     /**
      * Setting to true will enable preview mode for
      * the entity and show a preview button in the
      * edit/create forms
-     * 
-     * @var boolean	
+     *
+     * @var boolean
      */
     protected $supportsPreviewMode = false;
 
@@ -776,7 +778,7 @@ abstract class Admin implements AdminInterface, DomainObjectInterface
         if ($this->isChild() && $this->getParentAssociationMapping()) {
             $parent = $this->getParent()->getObject($this->request->get($this->getParent()->getIdParameter()));
 
-            $propertyPath = new \Symfony\Component\Form\Util\PropertyPath($this->getParentAssociationMapping());
+            $propertyPath = new PropertyPath($this->getParentAssociationMapping());
 
             $object = $this->getSubject();
 
@@ -1069,7 +1071,7 @@ abstract class Admin implements AdminInterface, DomainObjectInterface
      */
     public function generateObjectUrl($name, $object, array $parameters = array(), $absolute = false)
     {
-        $parameters['id'] = $this->getNormalizedIdentifier($object);
+        $parameters['id'] = $this->getUrlsafeIdentifier($object);
 
         return $this->generateUrl($name, $parameters, $absolute);
     }
@@ -1080,36 +1082,6 @@ abstract class Admin implements AdminInterface, DomainObjectInterface
     public function generateUrl($name, array $parameters = array(), $absolute = false)
     {
         return $this->routeGenerator->generateUrl($this, $name, $parameters, $absolute);
-    }
-
-    /**
-     * Returns the list template
-     *
-     * @return string the list template
-     */
-    public function getListTemplate()
-    {
-        return $this->getTemplate('list');
-    }
-
-    /**
-     * Returns the edit template
-     *
-     * @return string the edit template
-     */
-    public function getEditTemplate()
-    {
-        return $this->getTemplate('edit');
-    }
-
-    /**
-     * Returns the view template
-     *
-     * @return string the view template
-     */
-    public function getShowTemplate()
-    {
-        return $this->getTemplate('show');
     }
 
     /**
@@ -1172,7 +1144,7 @@ abstract class Admin implements AdminInterface, DomainObjectInterface
 
         // add the custom inline validation option
         $metadata = $this->validator->getMetadataFactory()->getClassMetadata($this->getClass());
-        $metadata->addConstraint(new \Sonata\AdminBundle\Validator\Constraints\InlineConstraint(array(
+        $metadata->addConstraint(new InlineConstraint(array(
             'service' => $this,
             'method'  => function(ErrorElement $errorElement, $object) use ($admin) {
                 /* @var \Sonata\AdminBundle\Admin\AdminInterface $admin */
@@ -1305,7 +1277,7 @@ abstract class Admin implements AdminInterface, DomainObjectInterface
      * @param string                                   $action
      * @param \Sonata\AdminBundle\Admin\AdminInterface $childAdmin
      *
-     * @return MenuItem|false
+     * @return \Knp\Menu\ItemInterface|boolean
      */
     public function buildSideMenu($action, AdminInterface $childAdmin = null)
     {
@@ -1332,7 +1304,7 @@ abstract class Admin implements AdminInterface, DomainObjectInterface
      * @param string                                   $action
      * @param \Sonata\AdminBundle\Admin\AdminInterface $childAdmin
      *
-     * @return \Knp\MenuBundle\Menu
+     * @return \Knp\Menu\ItemInterface
      */
     public function getSideMenu($action, AdminInterface $childAdmin = null)
     {
@@ -2034,7 +2006,7 @@ abstract class Admin implements AdminInterface, DomainObjectInterface
      * translate a message id
      *
      * @param string  $id
-     * @param integet $count
+     * @param integer $count
      * @param array   $parameters
      * @param null    $domain
      * @param null    $locale
@@ -2369,6 +2341,14 @@ abstract class Admin implements AdminInterface, DomainObjectInterface
     /**
      * {@inheritdoc}
      */
+    public function getUrlsafeIdentifier($entity)
+    {
+        return $this->getModelManager()->getUrlsafeIdentifier($entity);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getNormalizedIdentifier($entity)
     {
         return $this->getModelManager()->getNormalizedIdentifier($entity);
@@ -2515,17 +2495,16 @@ abstract class Admin implements AdminInterface, DomainObjectInterface
     {
         return $this->labelTranslatorStrategy;
     }
-    
-	/**
+
+    /**
      * Returning true will enable preview mode for
      * the target entity and show a preview button
      * when editing/creating an entity
-     * 
+     *
      * @return boolean
      */
     public function supportsPreviewMode()
     {
         return $this->supportsPreviewMode;
     }
-    
 }
